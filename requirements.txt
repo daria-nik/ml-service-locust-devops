@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pandas
+numpy
+scikit-learn
+evidently
+mlflow
+locust
+cryptography==41.0.5
