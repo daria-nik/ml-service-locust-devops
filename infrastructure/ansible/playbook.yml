@@ -1,0 +1,4 @@
+- name: Deploy ML service
+  hosts: local
+  roles:
+    - ml_service
