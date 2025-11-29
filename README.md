@@ -5,6 +5,7 @@ ML-Service + Locust Load Testing + ADR + IaC
 Работа выполнена по методологии API-first, включает описание архитектуры, анализ альтернативных решений, инфраструктуру, скрипты тестирования и результаты исследования дрейфа данных.
 
 1. Структура проекта
+```
 ml-service-locust-devops/
 │
 ├── service/
@@ -27,6 +28,7 @@ ml-service-locust-devops/
 │
 ├── requirements.txt
 └── README.md
+```
 
 2. API-first архитектура
 
