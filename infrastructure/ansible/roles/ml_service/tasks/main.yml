@@ -1,20 +1,46 @@
-- name: Install Python dependencies
-  pip:
-    name:
-      - fastapi
-      - uvicorn
-      - evidently
-      - pandas
-      - numpy
-      - scikit-learn
-    executable: pip3
+---
+# Роль для автоматического развёртывания ML-сервиса FastAPI
 
-- name: Copy service files
+- name: Ensure Docker is installed (Debian/Ubuntu)
+  apt:
+    name: docker.io
+    state: present
+  become: yes
+
+- name: Ensure Docker service is running
+  service:
+    name: docker
+    state: started
+    enabled: yes
+  become: yes
+
+- name: Create application directory
+  file:
+    path: /app
+    state: directory
+    mode: '0755'
+  become: yes
+
+- name: Copy service code to server
   copy:
-    src: "{{ playbook_dir }}/../../service/"
-    dest: "/opt/ml_service"
-    mode: 0755
+    src: "{{ playbook_dir }}/../service"
+    dest: /app
+  become: yes
 
-- name: Run service
-  shell: |
-    nohup uvicorn main:app --host 0.0.0.0 --port 8000 &
+- name: Build Docker image for ml-service
+  docker_image:
+    name: ml-service
+    build:
+      path: /app
+    source: build
+  become: yes
+
+- name: Run ML service container
+  docker_container:
+    name: ml-service
+    image: ml-service
+    state: started
+    restart_policy: always
+    published_ports:
+      - "8000:8000"
+  become: yes
