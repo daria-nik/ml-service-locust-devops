@@ -1,77 +1,84 @@
-Разворачивание сервиса с нуля с помощью Ansible
+## Разворачивание сервиса с нуля с помощью Ansible
 
-В проект включена минимальная инфраструктура как код (IaC), которая автоматически:
+В проект включена минимальная инфраструктура как код (IaC), которая позволяет автоматически:
+- устанавливать зависимости,
+- собирать Docker-образ,
+- запускать FastAPI-сервис в контейнере.
 
-устанавливает зависимости,
+## Структура каталога
 
-разворачивает контейнер с FastAPI-сервисом,
-
-обеспечивает воспроизводимый запуск.
-
-Структура каталога:
-
+```
 infrastructure/
 └── ansible/
-├── inventory.ini
-├── playbook.yml
-└── roles/
-└── ml_service/
-└── tasks/
-└── main.yml
+    ├── inventory.ini
+    ├── playbook.yml
+    └── roles/
+        └── ml_service/
+            └── tasks/
+                └── main.yml
+```
 
-Настройка inventory
+## 1. Настройка inventory
 
-Файл inventory.ini содержит список хостов:
+Файл `inventory.ini`:
 
+```
 [ml_service]
 localhost ansible_connection=local
+```
 
-При необходимости можно заменить localhost на IP-адрес удалённого сервера.
+## 2. Основной playbook
 
-Основной playbook
+Файл `playbook.yml`:
 
-Файл playbook.yml:
+```yaml
+- hosts: ml_service
+  become: yes
+  roles:
+    - ml_service
+```
 
-hosts: ml_service
-become: yes
-roles:
+## 3. Запуск Ansible
 
-ml_service
+Убедитесь, что Ansible установлен:
 
-Запуск Ansible
-
-Перед запуском убедитесь, что Ansible установлен:
-
+```
 pip install ansible
+```
 
 Запуск разворачивания сервиса:
 
+```
 ansible-playbook -i infrastructure/ansible/inventory.ini infrastructure/ansible/playbook.yml
+```
 
-Что делает роль ml_service
+## 4. Роль `ml_service`
 
-Файл roles/ml_service/tasks/main.yml выполняет:
+Файл `roles/ml_service/tasks/main.yml`:
 
-установку Docker (если необходимо),
+```yaml
+---
+- name: Build Docker image
+  command: docker build -t ml-service ../../service/
 
-сборку Docker-образа,
+- name: Run container
+  command: docker run -d -p 8000:8000 ml-service
+```
 
-запуск контейнера с ML-сервисом.
+Роль выполняет:
+1. Сборку Docker image из директории `service/`
+2. Запуск контейнера на порту `8000`
 
-Содержимое main.yml:
-
-name: Build Docker image
-command: docker build -t ml-service ../../service/
-
-name: Run container
-command: docker run -d -p 8000:8000 ml-service
-
-Итог
+## Итог
 
 После выполнения команды:
 
+```
 ansible-playbook -i infrastructure/ansible/inventory.ini infrastructure/ansible/playbook.yml
+```
 
-На хосте автоматически разворачивается FastAPI-сервис, доступный по адресу:
+На хосте автоматически развернется FastAPI-сервис, доступный по адресу:
 
+```
 http://localhost:8000/healthcheck
+```
